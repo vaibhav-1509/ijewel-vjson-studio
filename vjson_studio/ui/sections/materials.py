@@ -11,6 +11,9 @@ from ..widgets import Col, ColorEdit, DataTable, ParamEditor, button, toolbar
 from .base import Section
 
 
+NOT_REGISTERED = "(not registered - type a title)"
+
+
 def _m(d, u):
     return mat.materials(d)[u]
 
@@ -46,8 +49,15 @@ class MaterialsSection(Section):
             if mat.rename_material(d, u, s):
                 self.ctx.toast("Renamed - configurator title updated too")
 
+        def set_entry(d, u, s):
+            msg = mat.set_material_entry(d, u, s)
+            if msg:
+                self.ctx.toast(msg)
+
         cols = [
-            Col("Name", lambda m: m.get("name"), rename, width=230),
+            # rebuild: an entry can be shared, so other rows (and the name sync) may change too
+            Col("Configurator entry", lambda m: self._usage_text(m), set_entry, width=210, rebuild=True),
+            Col("Name (material)", lambda m: m.get("name"), rename, width=230, rebuild=True),
             Col("Type", mat.kind_of, kind="ro", width=90),
             Col("Colour", lambda m: m.get("color"), _set("color"), "color", 90),
             Col("Metalness", _only(std, "metalness"), lambda d, u, v: std(_m(d, u)) and _set("metalness")(d, u, v), "num", 80),
@@ -55,7 +65,6 @@ class MaterialsSection(Section):
             Col("Refractive idx", _only(dia, "refractiveIndex"),
                 lambda d, u, v: dia(_m(d, u)) and _set("refractiveIndex")(d, u, v), "num", 90),
             Col("Env intensity", lambda m: m.get("envMapIntensity"), _set("envMapIntensity"), "num", 90),
-            Col("Configurator entry", lambda m: self._usage_text(m), kind="ro", width=200),
             Col("UUID (auto)", lambda m: m.get("uuid"), kind="ro", width=270),
         ]
         self.table = DataTable(self.ctx, cols)
@@ -92,8 +101,10 @@ class MaterialsSection(Section):
     def _usage_text(self, m):
         u = mat.usage_of(self.ctx.data, m.get("uuid"))
         if not u:
-            return "not registered"
-        return u[0]["title"] if len(u) == 1 else f"{len(u)} entries"
+            if m.get("uuid") == mat.ground_material_uuid(self.ctx.data):
+                return "(ground material - no entry needed)"
+            return NOT_REGISTERED
+        return ", ".join(v.get("title", "") for v in u)
 
     def _rows(self):
         d = self.ctx.data

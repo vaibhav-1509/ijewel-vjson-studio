@@ -194,3 +194,21 @@ def test_ground_grid_layout():
     n_lines = sum(len(g[k][1]) // 3 for k in ("minor", "major", "x_axis", "z_axis"))
     n = round(g["half"] / g["step"])
     assert n_lines == 2 * (2 * n + 1)                                                # every grid line, once
+
+
+def test_set_material_entry(doc):
+    d = doc.data
+    u = mat.create_material(d, "entry-test", "metal", 0xE5B377)          # registered as 'entry-test'
+    assert mat.set_material_entry(d, u, "entry-renamed").startswith("Entry 'entry-test' renamed")
+    assert [v["title"] for v in mat.usage_of(d, u)] == ["entry-renamed"]
+    assert mat.materials(d)[u]["name"] == "entry-test"                    # the material name is separate
+    with pytest.raises(ValueError):
+        mat.set_material_entry(d, u, "")
+    other = mat.create_material(d, "other-mat", "metal", 0)
+    with pytest.raises(ValueError):                                       # titles stay unique
+        mat.set_material_entry(d, other, "entry-renamed")
+    lone = mat.create_material(d, "lone", "diamond", 0xFFFFFF, register=False)
+    assert mat.set_material_entry(d, lone, "lone-entry") == "Registered as 'lone-entry'"
+    mat.add_variation(d, "second-entry", lone)                            # now in two entries
+    with pytest.raises(ValueError):
+        mat.set_material_entry(d, lone, "ambiguous")

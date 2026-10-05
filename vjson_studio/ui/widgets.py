@@ -226,6 +226,7 @@ class Col:
     set: Optional[Callable[[dict, Any, Any], None]] = None   # (doc, key, value)
     kind: str = "text"                              # text | num | int | color | bool | ro
     width: int = 0
+    rebuild: bool = False                           # redraw the page after an edit (value affects other rows)
 
 
 class DataTable(QTableWidget):
@@ -343,7 +344,7 @@ class DataTable(QTableWidget):
         self._loading = True
         it.setData(Qt.UserRole, v)
         self._loading = False
-        self.ctx.mutate(lambda d: col.set(d, key, v), rebuild=False)
+        self.ctx.mutate(lambda d: col.set(d, key, v), rebuild=col.rebuild)
 
     def _double(self, row, column):
         col = self.cols[column]
@@ -354,7 +355,7 @@ class DataTable(QTableWidget):
             if c.isValid():
                 n = int(c.name()[1:], 16)
                 key = self.key_at(row)
-                self.ctx.mutate(lambda d: col.set(d, key, n), rebuild=False)
+                self.ctx.mutate(lambda d: col.set(d, key, n), rebuild=col.rebuild)
                 self._loading = True
                 it.setText(to_hex(n))
                 it.setData(Qt.UserRole, n)

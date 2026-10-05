@@ -224,6 +224,35 @@ def rename_variation(doc: dict, var: dict, new_title: str) -> None:
     var["title"] = new_title
 
 
+def set_material_entry(doc: dict, mat_uuid: str, title: str) -> str:
+    """Set the configurator entry title for one material, from the material's side.
+
+    - not registered: registers it under ``title``
+    - in exactly one entry: renames that entry (every material in it follows)
+    - in several entries: refused, since it is not clear which one is meant
+    Returns a sentence describing what changed.
+    """
+    title = title.strip()
+    if not title:
+        raise ValueError("Configurator entry title cannot be empty")
+    uses = usage_of(doc, mat_uuid)
+    if not uses:
+        if title_taken(doc, title):
+            raise ValueError(f"A configurator entry called '{title}' already exists - titles must be unique")
+        configurator(doc, create=True)["variations"].append(_variation(title, mat_uuid))
+        return f"Registered as '{title}'"
+    if len(uses) > 1:
+        raise ValueError(f"This material is in {len(uses)} entries ({', '.join(v.get('title', '') for v in uses)}) - "
+                         "rename the one you mean in the Configurator section")
+    var = uses[0]
+    if var.get("title") == title:
+        return ""
+    old = var.get("title")
+    rename_variation(doc, var, title)
+    others = len(var.get("materials") or []) - 1
+    return f"Entry '{old}' renamed to '{title}'" + (f" (shared by {others} other material(s))" if others else "")
+
+
 def delete_variations(doc: dict, vars_to_drop) -> None:
     ids = {id(v) for v in vars_to_drop}
     cf = configurator(doc)

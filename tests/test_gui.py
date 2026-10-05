@@ -130,3 +130,29 @@ def test_material_edit_and_configurator_rules(win, qtbot):
     assert json.dumps(win.ctx.data, sort_keys=True) == before
     win.undo()
     assert u not in mat.materials(win.ctx.data)
+
+
+def test_rename_configurator_entry_from_both_pages(win, qtbot):
+    from vjson_studio.model import materials as mat
+    d = win.ctx.data
+    u = next(u for u, m in mat.materials(d).items() if len(mat.usage_of(d, u)) == 1)
+    old = mat.usage_of(d, u)[0]["title"]
+
+    win.go("materials")
+    t = win.sections["materials"].table
+    assert t.cols[0].label == "Configurator entry" and t.cols[1].label.startswith("Name")
+    t.item(t._keys.index(u), 0).setText("renamed-from-materials")
+    qtbot.wait(50)
+    assert [v["title"] for v in mat.usage_of(win.ctx.data, u)] == ["renamed-from-materials"]
+    assert not mat.title_taken(win.ctx.data, old)
+
+    win.go("configurator")
+    qtbot.wait(50)
+    ct = win.sections["configurator"].table
+    i = next(i for i, v in enumerate(mat.variations(win.ctx.data)) if v["title"] == "renamed-from-materials")
+    ct.item(ct._keys.index(i), 0).setText("renamed-from-configurator")
+    qtbot.wait(50)
+    assert [v["title"] for v in mat.usage_of(win.ctx.data, u)] == ["renamed-from-configurator"]
+    win.undo()
+    win.undo()
+    assert [v["title"] for v in mat.usage_of(win.ctx.data, u)] == [old]
