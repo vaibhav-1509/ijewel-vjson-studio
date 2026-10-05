@@ -17,10 +17,13 @@ class NotAVjson(ValueError):
 
 
 class Document:
-    def __init__(self, data: dict, path: Path | None = None, style: str = jsonio.JS):
+    def __init__(self, data: dict, path: Path | None = None, style: str = jsonio.JS,
+                 newline: str = "\n", bom: bool = False):
         self.data = data
         self.path = path
         self.style = style
+        self.newline = newline        # kept from the file, so a save never rewrites every line ending
+        self.bom = bom
         self.dirty = False
         self._undo: list[dict] = []
         self._redo: list[dict] = []
@@ -31,15 +34,22 @@ class Document:
     @classmethod
     def open(cls, path: str | os.PathLike) -> "Document":
         p = Path(path)
-        text = p.read_text(encoding="utf-8")
-        data, style = jsonio.loads(text)
+        raw = p.read_bytes()
+        bom = raw.startswith(b"\xef\xbb\xbf")
+        text = raw.decode("utf-8-sig")
+        newline = "\r\n" if "\r\n" in text else "\n"
+        data, style = jsonio.loads(text.replace("\r\n", "\n"))
         if not isinstance(data, dict) or not all(k in data for k in ("resources", "plugins", "scene")):
             raise NotAVjson("This does not look like an iJewel3D .vjson (missing scene / plugins / resources).")
         data["resources"].setdefault("materials", {})
-        return cls(data, p, style)
+        return cls(data, p, style, newline, bom)
 
     def text(self) -> str:
-        return jsonio.dumps(self.data, self.style)
+        """The exact text a save writes: the file's number style, line endings and BOM."""
+        out = jsonio.dumps(self.data, self.style)
+        if self.newline != "\n":
+            out = out.replace("\n", self.newline)
+        return ("﻿" if self.bom else "") + out
 
     def save(self, path: str | os.PathLike | None = None) -> Path:
         """Write in the style the file was read in. The first save over the

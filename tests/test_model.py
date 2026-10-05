@@ -29,9 +29,19 @@ def doc():
 
 @pytest.mark.parametrize("path", SAMPLES, ids=lambda p: p.name)
 def test_unedited_save_is_byte_identical(path):
-    text = path.read_text(encoding="utf-8")
     d = Document.open(path)
-    assert d.text() == text
+    assert d.text().encode("utf-8") == path.read_bytes()
+
+
+@pytest.mark.parametrize("newline,bom", [("\r\n", False), ("\n", True), ("\r\n", True)])
+def test_line_endings_and_bom_survive_a_save(tmp_path, newline, bom):
+    text = TEST_VJSON.read_bytes().decode("utf-8").replace("\r\n", "\n").replace("\n", newline)
+    raw = (b"\xef\xbb\xbf" if bom else b"") + text.encode("utf-8")
+    p = tmp_path / "x.vjson"
+    p.write_bytes(raw)
+    d = Document.open(p)
+    d.save()
+    assert p.read_bytes() == raw
 
 
 def test_save_writes_backup_and_same_bytes(tmp_path):

@@ -1,0 +1,5 @@
+# test fixtures must stay byte-for-byte as written (round-trip tests compare bytes)
+*.vjson -text
+*.glb binary
+*.ico binary
+*.png binary
