@@ -1,0 +1,28 @@
+# environments and build output
+.venv/
+__pycache__/
+*.egg-info/
+build/
+dist/
+installer/Output/
+
+# tool output
+graphify-out/
+.pytest_cache/
+tests/_screens/
+*.vjson.bak
+*.vjson.tmp
+
+# private sample data - never published (models and scenes may be client designs)
+/test.vjson
+/ref.glb
+/vjson-studio.html
+/samples/
+*.glb
+!tests/fixtures/*.glb
+
+# local assistant instructions
+CLAUDE.md
+
+# web Draco decoder / model-viewer kept locally for reference; the app decodes with DracoPy
+/draco/

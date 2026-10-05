@@ -1,0 +1,52 @@
+[project]
+name = "vjson-studio-3d"
+version = "0.1.0"
+description = "Desktop editor for iJewel3D / WebGi .vjson scenes, with a GLB viewport for camera views"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Vaibhav H" }]
+keywords = ["ijewel3d", "ijewel", "webgi", "vjson", "jewelry", "3d", "camera", "glb", "threejs"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: Microsoft :: Windows",
+  "Environment :: X11 Applications :: Qt",
+  "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+requires-python = ">=3.11"
+dependencies = [
+  "PySide6>=6.6",
+  "pyvista>=0.43",
+  "pyvistaqt>=0.11",
+  "numpy>=1.26",
+  "pygltflib>=1.16",
+  "DracoPy>=1.4",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pytest-qt>=4"]
+build = ["pyinstaller>=6"]
+
+[project.urls]
+Homepage = "https://github.com/vaibhav-1509/ijewel-vjson-studio"
+Issues = "https://github.com/vaibhav-1509/ijewel-vjson-studio/issues"
+
+[project.gui-scripts]
+vjson-studio-gui = "vjson_studio.app:main"
+
+[project.scripts]
+vjson-studio = "vjson_studio.app:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["vjson_studio*"]
+
+[tool.setuptools.package-data]
+vjson_studio = ["resources/*.png"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+qt_api = "pyside6"
