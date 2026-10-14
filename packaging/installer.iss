@@ -3,7 +3,7 @@
 ; Installs per user by default (no admin needed); choose "all users" in the wizard to install machine-wide.
 
 #define AppName "vjson Studio 3D"
-#define AppVersion "0.1.0"
+#define AppVersion "0.1.1"
 #define AppPublisher "Vaibhav H"
 #define AppURL "https://github.com/vaibhav-1509/ijewel-vjson-studio"
 #define AppExe "vjson Studio 3D.exe"

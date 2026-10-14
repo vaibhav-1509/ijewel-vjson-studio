@@ -1,6 +1,6 @@
 [project]
 name = "vjson-studio-3d"
-version = "0.1.0"
+version = "0.1.1"
 description = "Desktop editor for iJewel3D / WebGi .vjson scenes, with a GLB viewport for camera views"
 readme = "README.md"
 license = "MIT"
